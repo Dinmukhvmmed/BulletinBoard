@@ -57,8 +57,8 @@ public class ApiController {
     @PostMapping("/buy_advertisement")
     public ResponseEntity<DealDto> byuAdvertisement(
             User user, Advertisement advertisement,
-            @RequestParam(name = "price", required = false) float yourPriceForBuy) {
-        if (user != null || advertisement != null) {
+            @RequestParam(name = "price") float yourPriceForBuy) {
+        if (user != null && advertisement != null) {
             return new ResponseEntity(dealService.buyAdd(user, advertisement, yourPriceForBuy), HttpStatus.OK);
         }
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(null);

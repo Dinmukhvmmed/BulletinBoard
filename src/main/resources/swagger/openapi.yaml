@@ -1,0 +1,253 @@
+openapi: 3.0.0
+info: 
+  title: Cервис доски объявлений, работающего по принципу аукциона
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080/
+    description: Home page
+paths:
+  /:
+    get:
+      summary: Метод получения доступных объявлений
+      tags:
+        - Advertisement
+      operationId: Получение всех объявлений
+      responses: 
+        '200' :
+          description: Успешный ответ со списком объявлений
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/AdvertisementDtoList"
+        'default':
+          description: Все нестандартное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /withCategory:
+    get:
+      summary: Метод получения доступных объявлений по выбранной категории
+      tags:
+        - Advertisement
+      operationId: Получение объявлений по выбранной категории
+      parameters: 
+        - name: category
+          in: query
+          required: true
+          description: Категория товара
+          schema:
+            type: string
+            enum:
+              - LEISURE
+              - HOME
+              - PHARMACY
+              - CLOTH
+              - SPORT
+              - TECHNIQUE
+      responses: 
+        '200' :
+          description: Успешный ответ со списком объявлений по выбранной категории
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/AdvertisementDtoList"
+        'default':
+          description: Все нестандартное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /create_advertisement:
+    post:
+      summary: Метод создания объявления
+      tags:
+        - Advertisement
+      operationId: Создание нового объявление
+      parameters:
+        - name: user
+          in: query
+          required: true
+          description: Автор объявления
+          schema:
+            $ref: "#/components/schemas/User"
+        - name: name
+          in: query
+          required: true
+          description: Наименование товара
+          schema:
+            type: string
+        - name: description
+          in: query
+          required: true
+          description: Описание товара
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: true
+          description: Категория товара
+          schema:
+            type: string
+            enum:
+              - LEISURE
+              - HOME
+              - PHARMACY
+              - CLOTH
+              - SPORT
+              - TECHNIQUE            
+      responses: 
+        '200' :
+          description: Успешный ответ с получением объявления
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/AdvertisementDto"
+        'default':
+          description: Все нестандартное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /buy_advertisement:
+    post:
+      summary: Метод с данными о вступлении к аукциону и результатами аукциона
+      tags:
+        - Deal
+      operationId: Получение данных о действующем аукционе
+      parameters: 
+        - name: user
+          in: query
+          required: true
+          description: Покупатель товара
+          schema:
+            $ref: "#/components/schemas/User"
+        - name: advertisement
+          in: query
+          required: true
+          description: Желаемый к покупке товар
+          schema: 
+            $ref: "#/components/schemas/AdvertisementDto"
+        - name: price
+          in: query
+          required: true
+          description: Цена которую предлогает покупатель
+          schema:
+            type: number
+            example: 5.25
+      responses: 
+        '200' :
+          description: Успешный ответ с даными о сделке в котором так-же можно узнать прервалась (другой пользователь повысил цену) сделка или прошла успешна
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/DealDto"
+        'default':
+          description: Все нестандартное
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"  
+components:
+  schemas:
+    AdvertisementDto:
+      type: object
+      required:
+        - name
+        - description
+        - minPrice
+        - dateTime
+        - status
+        - category
+      properties:
+        name:
+          type: string
+          example: "Книга"
+        description:
+          type: string
+          example: "Книга \"Чистый Код\", Роберт Мартин"
+        minPrice: 
+          type: number
+          example: 5.15
+        dateTime:
+          type: string
+          example: "yyyy-MM-dd-HH-mm-ss.zzz"
+          description: Время создания объявления
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+          description: Статус товара
+        category: 
+          type: string
+          enum:
+            - LEISURE
+            - HOME
+            - PHARMACY
+            - CLOTH
+            - SPORT
+            - TECHNIQUE
+          description: Категория товара в объявлении
+    AdvertisementDtoList:
+      type: array
+      items: 
+        $ref: "#/components/schemas/AdvertisementDto"
+    User:
+      type: object
+      required: 
+        - email
+        - password
+      properties: 
+        email:
+          type: string
+          example: "robot@gmail.com"
+        password:
+          type: string
+          example: "password"
+    DealDto: 
+      type: object
+      required: 
+        - userBuyer
+        - dealPrice
+        - userOwner
+        - minPrice
+        - dateTime
+        - dealStatus
+      properties:
+        userBuyer: 
+          type: string
+          example: "robot@gmail.com"
+        dealPrice:
+          type: number
+          example: 5.25
+        userOwner: 
+          type: string
+          example: "human@gmail.com"
+        minPrice:
+          type: number
+          example: 5.15
+        dateTime:
+          type: string
+          example: "yyyy-MM-dd-HH-mm-ss.zzz"
+        dealStatus:
+          type: string
+          enum:
+            - PENDING
+            - PURCHASED
+            - INTERRUPTED
+    Error: 
+      type: object
+      required: 
+        - code
+        - message
+      properties: 
+        code:
+          type: integer
+          example: 405
+        message:
+          type: string
+          example: "Method Not Allowed"
